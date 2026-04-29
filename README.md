@@ -2,6 +2,7 @@
 
 **A tiny macOS daemon that loudly tells you when the internet drops.**
 
+[![Release](https://img.shields.io/github/v/release/issmirnov/net-sentry?display_name=tag&sort=semver)](https://github.com/issmirnov/net-sentry/releases/latest)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange.svg)
 ![Platform: macOS 12+](https://img.shields.io/badge/Platform-macOS%2012%2B-blue.svg)
@@ -43,6 +44,8 @@ brew tap issmirnov/apps
 brew install net-sentry
 brew services start net-sentry
 ```
+
+> Formula lives in [issmirnov/homebrew-apps](https://github.com/issmirnov/homebrew-apps/blob/master/Formula/net-sentry.rb). Builds from the [v0.1.0 release tarball](https://github.com/issmirnov/net-sentry/releases/tag/v0.1.0) via `swift build -c release`. Use `brew install --HEAD net-sentry` to track `main` instead of the latest tag.
 
 ### From source
 
