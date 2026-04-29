@@ -68,4 +68,12 @@ final class AlerterTests: XCTestCase {
         XCTAssertTrue(script.contains("giving up after 30"))
         XCTAssertTrue(script.contains("Internet is down"))
     }
+
+    func testAppleScriptEscapesBackslashAndQuote() {
+        // Backslash before quote — order matters; if quote ran first we'd
+        // double-escape the backslash we introduced.
+        XCTAssertEqual(Alerter.escapeForAppleScript(#"path\with\backslash"#), #"path\\with\\backslash"#)
+        XCTAssertEqual(Alerter.escapeForAppleScript(#"say "hi""#), #"say \"hi\""#)
+        XCTAssertEqual(Alerter.escapeForAppleScript(#"\"both\""#), #"\\\"both\\\""#)
+    }
 }

@@ -28,7 +28,7 @@ public final class Alerter {
         let modal = config.notifiers.modal
         let modalText = isDown ? modal.textDown : modal.textUp
         if modal.enabled && !modalText.isEmpty {
-            let escaped = modalText.replacingOccurrences(of: "\"", with: "\\\"")
+            let escaped = Alerter.escapeForAppleScript(modalText)
             let timeoutClause = modal.timeoutSeconds > 0 ? " giving up after \(modal.timeoutSeconds)" : ""
             let script = "display dialog \"\(escaped)\" with icon \(modal.icon) buttons {\"OK\"} default button \"OK\"\(timeoutClause)"
             spawn(SpawnCall(executable: "/usr/bin/osascript", args: ["-e", script]))
@@ -37,11 +37,18 @@ public final class Alerter {
         let banner = config.notifiers.banner
         let bannerText = isDown ? banner.textDown : banner.textUp
         if banner.enabled && !bannerText.isEmpty {
-            let escapedText = bannerText.replacingOccurrences(of: "\"", with: "\\\"")
-            let escapedTitle = banner.title.replacingOccurrences(of: "\"", with: "\\\"")
+            let escapedText = Alerter.escapeForAppleScript(bannerText)
+            let escapedTitle = Alerter.escapeForAppleScript(banner.title)
             let script = "display notification \"\(escapedText)\" with title \"\(escapedTitle)\""
             spawn(SpawnCall(executable: "/usr/bin/osascript", args: ["-e", script]))
         }
+    }
+
+    static func escapeForAppleScript(_ s: String) -> String {
+        // Backslash MUST come first so we don't double-escape the backslashes
+        // we introduce when escaping quotes.
+        s.replacingOccurrences(of: "\\", with: "\\\\")
+         .replacingOccurrences(of: "\"", with: "\\\"")
     }
 
     public static let realSpawn: SpawnFn = { call in
@@ -50,6 +57,8 @@ public final class Alerter {
         p.arguments = call.args
         p.standardOutput = FileHandle.nullDevice
         p.standardError = FileHandle.nullDevice
+        // Fire-and-forget: child is reparented to launchd on `p` dealloc,
+        // which reaps the zombie. Safe for short-lived processes only.
         try? p.run()
     }
 }
