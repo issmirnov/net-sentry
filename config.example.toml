@@ -1,0 +1,25 @@
+# net-sentry configuration
+# Lives at: ~/Library/Application Support/net-sentry/config.toml
+# Edits require: launchctl kickstart -k gui/$(id -u)/link.smirnov.net-sentry
+
+[debounce]
+seconds = 2.0
+
+[notifiers.speech]
+enabled = true
+voice = "Samantha"            # `say -v ?` for the full list
+text_down = "Internet is down"
+text_up = ""                  # empty = skip recovery direction
+
+[notifiers.modal]
+enabled = true
+icon = "stop"                 # stop | caution | note
+timeout_seconds = 30          # auto-dismiss; 0 = block forever
+text_down = "Internet is down"
+text_up = ""
+
+[notifiers.banner]
+enabled = true
+title = "Net Sentry"
+text_down = "Internet is down"
+text_up = "Internet is back"
