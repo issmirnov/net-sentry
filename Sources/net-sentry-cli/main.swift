@@ -29,6 +29,31 @@ let monitor = PathMonitor(targetQueue: stateQueue) { state in
 }
 monitor.start()
 
+// DNS Guard — second, independent pipeline (opt-in). Top-level `var` so the
+// chain survives for the process lifetime; refs inside an if-block would be
+// deallocated at its close, tearing down the monitor before dispatchMain().
+var dnsPipeline: [AnyObject] = []
+if config.dnsGuard.enabled, !config.dnsGuard.knownDNS.isEmpty {
+    let dnsQueue = DispatchQueue(label: "link.smirnov.net-sentry.dns")
+    let dnsGuard = DNSGuard(config: config.dnsGuard)
+    let dnsDebouncer = Debouncer<Reachability>(
+        window: .milliseconds(Int(config.dnsGuard.debounceSeconds * 1000)),
+        queue: dnsQueue
+    ) { [dnsGuard] r in dnsGuard.reconcile(r) }
+    let probe = ResolverProbe(
+        host: config.dnsGuard.knownDNS,
+        port: 53,
+        timeout: config.dnsGuard.probeTimeoutSeconds,
+        targetQueue: dnsQueue
+    ) { [dnsDebouncer] r in dnsDebouncer.submit(r) }
+    probe.start()
+    dnsPipeline = [dnsGuard, dnsDebouncer, probe]
+    FileHandle.standardError.write(Data("net-sentry: dns_guard watching \(config.dnsGuard.knownDNS) on \(config.dnsGuard.services)\n".utf8))
+} else if config.dnsGuard.enabled {
+    FileHandle.standardError.write(Data("net-sentry: dns_guard enabled but known_dns is empty; skipping\n".utf8))
+}
+_ = dnsPipeline   // silence "never read" — it exists to retain the chain
+
 FileHandle.standardError.write(Data("net-sentry: running; debounce=\(config.debounce.seconds)s\n".utf8))
 
 dispatchMain()  // never returns; serviced by libdispatch + run loop
