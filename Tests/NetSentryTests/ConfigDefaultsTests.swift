@@ -23,4 +23,14 @@ final class ConfigDefaultsTests: XCTestCase {
         XCTAssertEqual(c.notifiers.banner.textDown, "Internet is down")
         XCTAssertEqual(c.notifiers.banner.textUp, "Internet is back")
     }
+
+    func testDNSGuardDefaults() {
+        let g = Config.defaults.dnsGuard
+        XCTAssertFalse(g.enabled)
+        XCTAssertEqual(g.knownDNS, "")
+        XCTAssertEqual(g.services, ["Wi-Fi"])
+        XCTAssertEqual(g.debounceSeconds, 3.0)
+        XCTAssertEqual(g.probeTimeoutSeconds, 2.0)
+        XCTAssertTrue(g.notify)
+    }
 }
