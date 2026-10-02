@@ -65,3 +65,49 @@ public struct DNSBackend {
         return String(data: data, encoding: .utf8) ?? ""
     }
 }
+
+/// Stateless, observed-value reconciler. On each (debounced) reachability
+/// verdict it reads the live DNS of each managed service and writes only when
+/// a change is needed — so it is idempotent, needs no persistent state, and
+/// never clobbers a value the user set to something other than known_dns.
+public final class DNSGuard {
+    private let config: Config.DNSGuard
+    private let backend: DNSBackend
+    private let notify: SpawnFn
+
+    public init(config: Config.DNSGuard,
+                backend: DNSBackend = .real,
+                notify: @escaping SpawnFn = Alerter.realSpawn) {
+        self.config = config
+        self.backend = backend
+        self.notify = notify
+    }
+
+    public func reconcile(_ r: Reachability) {
+        var mutated = false
+        for service in config.services {
+            let current = backend.currentDNS(service)
+            switch r {
+            case .unreachable:
+                if current == [config.knownDNS] {
+                    backend.setDNS(service, [])
+                    mutated = true
+                }
+            case .reachable:
+                if current.isEmpty {
+                    backend.setDNS(service, [config.knownDNS])
+                    mutated = true
+                }
+            }
+        }
+        if mutated && config.notify { fireBanner(r) }
+    }
+
+    private func fireBanner(_ r: Reachability) {
+        let text = (r == .unreachable)
+            ? "Pi-hole unreachable — DNS cleared"
+            : "Pi-hole reachable — DNS restored"
+        let script = "display notification \"\(Alerter.escapeForAppleScript(text))\" with title \"Net Sentry\""
+        notify(SpawnCall(executable: "/usr/bin/osascript", args: ["-e", script]))
+    }
+}
