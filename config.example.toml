@@ -23,3 +23,16 @@ enabled = true
 title = "Net Sentry"
 text_down = "Internet is down"
 text_up = "Internet is back"
+
+# --- DNS Guard (optional) ---------------------------------------------------
+# Clears a pinned DNS override when the configured resolver stops answering
+# (e.g. your Pi-hole when its WireGuard tunnel drops), and re-pins it on
+# recovery. Off by default. Detection is a one-shot TCP:53 probe fired on
+# network-change events — not polling.
+[dns_guard]
+enabled = false
+known_dns = "10.0.0.2"        # the resolver IP to probe and manage (set to YOUR Pi-hole)
+services = ["Wi-Fi"]          # network service(s) whose DNS override to own
+debounce_seconds = 3.0        # settle time before acting (rides out VPN reconnect flaps)
+probe_timeout_seconds = 2.0   # TCP:53 probe deadline; miss => treat as unreachable
+notify = true                 # banner when it clears / restores

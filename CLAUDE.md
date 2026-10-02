@@ -34,6 +34,8 @@ Subprocess spawns from Alerter are async (fire-and-forget via `Process().run()` 
 | `Sources/NetSentry/Alerter.swift` | Reads `[notifiers.*]` config, dispatches subprocess via injected `SpawnFn`. AppleScript escaping for backslash + quote. | `AlerterTests.swift` |
 | `Sources/NetSentry/PathMonitor.swift` | Thin wrapper around `NWPathMonitor`; emits `LinkState` on the target queue. | _Integration test only — kernel callback can't be unit-tested._ |
 | `Sources/net-sentry-cli/main.swift` | Wires everything; runs `dispatchMain()`. | _End-to-end manual test._ |
+| `Sources/NetSentry/DNSGuard.swift` | `Reachability`, `DNSBackend` (injected read/write + `parseDNSServers` + `.real` networksetup glue), `DNSGuard` reconciler. | `DNSGuardTests.swift` |
+| `Sources/NetSentry/ResolverProbe.swift` | NWPathMonitor trigger + one-shot TCP:53 `NWConnection` probe → `Reachability`. | _Integration only — live socket + kernel callback._ |
 
 Tests are parallel to source files, one per testable component.
 
@@ -92,6 +94,8 @@ These are load-bearing design decisions. Changing them requires re-reading the s
 
 7. **`__HOME__` placeholder in the plist.** `install.sh` substitutes `__HOME__` with `$HOME` via `sed`, which works correctly even on systems where home directories aren't at `/Users/<name>`. Don't hardcode the path.
 
+8. **DNS Guard probes and reconciles on the seed.** `ResolverProbe` runs an immediate probe at `start()` and `DNSGuard.reconcile` runs on the first (debounced) verdict — unlike the alert `StateMachine`'s silent first-event seed — so a daemon launched mid-outage clears a stale pin immediately. Safe because `reconcile` is idempotent (reads live DNS, writes only on need). Do NOT turn it into transition-only firing. DNS Guard is opt-in (`[dns_guard].enabled`, default false) and runs on its own `link.smirnov.net-sentry.dns` queue, sharing no mutable state with the alert pipeline.
+
 ## Common tasks
 
 ### Add a new notifier channel (e.g., webhook)
@@ -123,6 +127,10 @@ The plan deliberately doesn't include hot-reload of config — it's a v0.2 enhan
 
 Listed under `Limitations` in the spec as v0.2 work. The hook is in `StateMachine` after the `.satisfied` transition: before calling `onTransition(.up)`, kick off an async probe to `http://captive.apple.com/hotspot-detect.html` and only fire the recovery alert if the response body contains the expected `<TITLE>Success</TITLE>` string.
 
+### Extend DNS Guard to multiple watched resolvers
+
+v1 watches one `known_dns`. To support several, promote `[dns_guard]` to a TOML array-of-tables `[[dns_guard.watch]]` (each `{ known_dns, services }`), make `Config.DNSGuard` hold `watches: [Watch]`, read the table-array in `ConfigLoader.merge`, and in `main.swift` spin one `ResolverProbe`+`Debouncer`+`DNSGuard` per watch on the shared dns queue. Keep the old single-section form working by treating it as a one-element array. This is additive — invariant #4 (default-on-missing) still holds.
+
 ## Where things live (post-install)
 
 | Concern | Location |
@@ -136,6 +144,7 @@ Listed under `Limitations` in the spec as v0.2 work. The hook is in `StateMachin
 | Daemon stderr log | `~/Library/Logs/net-sentry.err.log` |
 | Design spec (frozen) | `docs/superpowers/specs/2026-04-29-net-sentry-design.md` |
 | Implementation plan (executed) | `docs/superpowers/plans/2026-04-29-net-sentry-implementation.md` |
+| DNS Guard config | the `[dns_guard]` section of `config.toml` |
 
 ## Don't
 
@@ -146,7 +155,7 @@ Listed under `Limitations` in the spec as v0.2 work. The hook is in `StateMachin
 - **Don't restructure into multiple Swift modules.** The single-library + tiny-executable layout is deliberate. If you find yourself wanting more modules, you're probably overgrowing the project.
 - **Don't add `--help`/`--version` flags** unless asked. The daemon has one job; CLI args would be over-engineering.
 - **Don't add telemetry, analytics, crash reporting, or auto-update.** Not ever.
-- **Don't elevate to root.** The daemon runs as the user's LaunchAgent (gui domain), which is sufficient for `say` and `osascript`. Running as root would actually break the GUI rendering.
+- **Don't elevate to root.** The daemon runs as the user's LaunchAgent (gui domain), sufficient for `say`, `osascript`, and `networksetup -setdnsservers` (for an admin user). Running as root would break GUI rendering. This is why DNS Guard accepts TTL-bounded recovery lag rather than forcing a root-only `killall -HUP mDNSResponder`.
 
 ## Test philosophy
 

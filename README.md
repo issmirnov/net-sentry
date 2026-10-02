@@ -110,6 +110,21 @@ launchctl kickstart -k "gui/$(id -u)/link.smirnov.net-sentry"
 
 Empty-string `text_*` is the sentinel for "skip this direction for this channel" — that's why the default `text_up = ""` for speech and modal means recovery is banner-only.
 
+## DNS Guard (optional)
+
+If you pin your Mac's DNS to a home resolver that's only reachable over a VPN (e.g. a Pi-hole behind WireGuard), DNS Guard rescues you when that tunnel drops: the resolver stops answering, every lookup fails even though Wi-Fi is up. DNS Guard notices and **clears the DNS override** so macOS falls back to DHCP DNS — then **re-pins it** when the resolver answers again.
+
+Enable it in `~/Library/Application Support/net-sentry/config.toml`:
+
+```toml
+[dns_guard]
+enabled = true
+known_dns = "10.3.32.102"   # your resolver
+services = ["Wi-Fi"]        # the service(s) you pin DNS on
+```
+
+How it decides, each network change: a one-shot TCP probe to `known_dns:53` (not polling). It only ever clears a service whose DNS is **exactly** `known_dns`, and only ever restores a service that's **empty** — so a resolver you set by hand to something else (say `1.1.1.1`) is never touched. Requires an admin user (the `networksetup` write needs it); no root. Recovery of names looked up *during* the outage is bounded by their DNS cache TTL — net-sentry does not force a cache flush (that needs root).
+
 ## How it works
 
 ```
