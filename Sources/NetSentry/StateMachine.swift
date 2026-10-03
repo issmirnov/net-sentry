@@ -6,8 +6,8 @@ public enum LinkState: Equatable {
 }
 
 public enum Transition: Equatable {
-    case down   // online → offline
-    case up     // offline → online
+    case down  // online → offline
+    case up  // offline → online
 }
 
 public final class StateMachine {
@@ -20,8 +20,8 @@ public final class StateMachine {
 
     public func handle(_ next: LinkState) {
         defer { current = next }
-        guard let prev = current else { return }   // first event: seed silently
-        guard prev != next else { return }          // steady state: silent
+        guard let prev = current else { return }  // first event: seed silently
+        guard prev != next else { return }  // steady state: silent
         switch (prev, next) {
         case (.online, .offline): onTransition(.down)
         case (.offline, .online): onTransition(.up)

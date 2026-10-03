@@ -48,7 +48,7 @@ public final class Alerter {
         // Backslash MUST come first so we don't double-escape the backslashes
         // we introduce when escaping quotes.
         s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\"", with: "\\\"")
     }
 
     public static let realSpawn: SpawnFn = { call in

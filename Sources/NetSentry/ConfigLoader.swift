@@ -38,29 +38,28 @@ public enum ConfigLoader {
         var c = defaults
 
         if let d = t["debounce"]?.table {
-            if let v = d["seconds"]?.double { c.debounce.seconds = v }
-            else if let v = d["seconds"]?.int { c.debounce.seconds = Double(v) }
+            if let v = d["seconds"]?.double { c.debounce.seconds = v } else if let v = d["seconds"]?.int { c.debounce.seconds = Double(v) }
         }
 
         if let n = t["notifiers"]?.table {
             if let s = n["speech"]?.table {
-                if let v = s["enabled"]?.bool      { c.notifiers.speech.enabled  = v }
-                if let v = s["voice"]?.string      { c.notifiers.speech.voice    = v }
-                if let v = s["text_down"]?.string  { c.notifiers.speech.textDown = v }
-                if let v = s["text_up"]?.string    { c.notifiers.speech.textUp   = v }
+                if let v = s["enabled"]?.bool { c.notifiers.speech.enabled = v }
+                if let v = s["voice"]?.string { c.notifiers.speech.voice = v }
+                if let v = s["text_down"]?.string { c.notifiers.speech.textDown = v }
+                if let v = s["text_up"]?.string { c.notifiers.speech.textUp = v }
             }
             if let m = n["modal"]?.table {
-                if let v = m["enabled"]?.bool             { c.notifiers.modal.enabled        = v }
-                if let v = m["icon"]?.string              { c.notifiers.modal.icon           = v }
-                if let v = m["timeout_seconds"]?.int      { c.notifiers.modal.timeoutSeconds = v }
-                if let v = m["text_down"]?.string         { c.notifiers.modal.textDown       = v }
-                if let v = m["text_up"]?.string           { c.notifiers.modal.textUp         = v }
+                if let v = m["enabled"]?.bool { c.notifiers.modal.enabled = v }
+                if let v = m["icon"]?.string { c.notifiers.modal.icon = v }
+                if let v = m["timeout_seconds"]?.int { c.notifiers.modal.timeoutSeconds = v }
+                if let v = m["text_down"]?.string { c.notifiers.modal.textDown = v }
+                if let v = m["text_up"]?.string { c.notifiers.modal.textUp = v }
             }
             if let b = n["banner"]?.table {
-                if let v = b["enabled"]?.bool      { c.notifiers.banner.enabled  = v }
-                if let v = b["title"]?.string      { c.notifiers.banner.title    = v }
-                if let v = b["text_down"]?.string  { c.notifiers.banner.textDown = v }
-                if let v = b["text_up"]?.string    { c.notifiers.banner.textUp   = v }
+                if let v = b["enabled"]?.bool { c.notifiers.banner.enabled = v }
+                if let v = b["title"]?.string { c.notifiers.banner.title = v }
+                if let v = b["text_down"]?.string { c.notifiers.banner.textDown = v }
+                if let v = b["text_up"]?.string { c.notifiers.banner.textUp = v }
             }
         }
         return c
