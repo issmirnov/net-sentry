@@ -85,4 +85,36 @@ final class ConfigLoaderTests: XCTestCase {
         XCTAssertEqual(result.config.notifiers.modal.timeoutSeconds, Config.defaults.notifiers.modal.timeoutSeconds)
         XCTAssertEqual(result.diagnostic, .ok)
     }
+
+    func testDNSGuardSectionParsed() throws {
+        let path = tempDir.appendingPathComponent("dnsguard.toml").path
+        try """
+        [dns_guard]
+        enabled = true
+        known_dns = "10.3.32.102"
+        services = ["Wi-Fi", "Thunderbolt Ethernet Slot 0"]
+        debounce_seconds = 4.5
+        probe_timeout_seconds = 1.5
+        notify = false
+        """.write(toFile: path, atomically: true, encoding: .utf8)
+
+        let g = ConfigLoader.load(path: path).config.dnsGuard
+        XCTAssertTrue(g.enabled)
+        XCTAssertEqual(g.knownDNS, "10.3.32.102")
+        XCTAssertEqual(g.services, ["Wi-Fi", "Thunderbolt Ethernet Slot 0"])
+        XCTAssertEqual(g.debounceSeconds, 4.5)
+        XCTAssertEqual(g.probeTimeoutSeconds, 1.5)
+        XCTAssertFalse(g.notify)
+    }
+
+    func testDNSGuardAbsentSectionKeepsDefaults() throws {
+        let path = tempDir.appendingPathComponent("nodnsguard.toml").path
+        try """
+        [debounce]
+        seconds = 2.0
+        """.write(toFile: path, atomically: true, encoding: .utf8)
+
+        let g = ConfigLoader.load(path: path).config.dnsGuard
+        XCTAssertEqual(g, Config.defaults.dnsGuard)
+    }
 }

@@ -3,6 +3,7 @@ import Foundation
 public struct Config: Equatable {
     public var debounce: Debounce
     public var notifiers: Notifiers
+    public var dnsGuard: DNSGuard
 
     public struct Debounce: Equatable {
         public var seconds: Double
@@ -36,6 +37,15 @@ public struct Config: Equatable {
         public var textUp: String
     }
 
+    public struct DNSGuard: Equatable {
+        public var enabled: Bool
+        public var knownDNS: String
+        public var services: [String]
+        public var debounceSeconds: Double
+        public var probeTimeoutSeconds: Double
+        public var notify: Bool
+    }
+
     public static let defaults = Config(
         debounce: Debounce(seconds: 2.0),
         notifiers: Notifiers(
@@ -58,6 +68,14 @@ public struct Config: Equatable {
                 textDown: "Internet is down",
                 textUp: "Internet is back"
             )
+        ),
+        dnsGuard: DNSGuard(
+            enabled: false,
+            knownDNS: "",
+            services: ["Wi-Fi"],
+            debounceSeconds: 3.0,
+            probeTimeoutSeconds: 2.0,
+            notify: true
         )
     )
 }

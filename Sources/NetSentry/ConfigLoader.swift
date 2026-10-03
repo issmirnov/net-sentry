@@ -62,6 +62,23 @@ public enum ConfigLoader {
                 if let v = b["text_up"]?.string { c.notifiers.banner.textUp = v }
             }
         }
+
+        if let g = t["dns_guard"]?.table {
+            if let v = g["enabled"]?.bool { c.dnsGuard.enabled = v }
+            if let v = g["known_dns"]?.string { c.dnsGuard.knownDNS = v }
+            if let arr = g["services"]?.array { c.dnsGuard.services = arr.compactMap { $0.string } }
+            if let v = g["debounce_seconds"]?.double {
+                c.dnsGuard.debounceSeconds = v
+            } else if let v = g["debounce_seconds"]?.int {
+                c.dnsGuard.debounceSeconds = Double(v)
+            }
+            if let v = g["probe_timeout_seconds"]?.double {
+                c.dnsGuard.probeTimeoutSeconds = v
+            } else if let v = g["probe_timeout_seconds"]?.int {
+                c.dnsGuard.probeTimeoutSeconds = Double(v)
+            }
+            if let v = g["notify"]?.bool { c.dnsGuard.notify = v }
+        }
         return c
     }
 }
