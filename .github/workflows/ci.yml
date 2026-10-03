@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-lint:
+    name: build · test · lint
+    runs-on: macos-15 # Xcode 16 / Swift 6 by default — needed for the bundled `swift format`
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain version
+        run: swift --version
+
+      - name: Format lint
+        run: swift format lint --strict --recursive Sources Tests
+
+      - name: Build (debug)
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      - name: Build (release)
+        run: swift build -c release
+
+      - name: Lint LaunchAgent plist
+        run: plutil -lint link.smirnov.net-sentry.plist
+
+      - name: Validate config.example.toml
+        run: |
+          python3 - <<'PY'
+          import sys
+          try:
+              import tomllib
+          except ModuleNotFoundError:
+              print("tomllib unavailable (Python < 3.11); skipping")
+              sys.exit(0)
+          with open("config.example.toml", "rb") as f:
+              tomllib.load(f)
+          print("config.example.toml parses OK")
+          PY
