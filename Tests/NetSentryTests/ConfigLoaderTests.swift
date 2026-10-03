@@ -28,7 +28,8 @@ final class ConfigLoaderTests: XCTestCase {
         try "this is = = not valid toml".write(toFile: path, atomically: true, encoding: .utf8)
         let result = ConfigLoader.load(path: path)
         XCTAssertEqual(result.config, Config.defaults)
-        if case .parseError = result.diagnostic { } else {
+        if case .parseError = result.diagnostic {
+        } else {
             XCTFail("expected .parseError, got \(result.diagnostic)")
         }
     }

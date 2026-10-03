@@ -19,7 +19,7 @@ final class StateMachineTests: XCTestCase {
     func testTransitionFromOnlineToOfflineFiresDown() {
         var transitions: [Transition] = []
         let sm = StateMachine { transitions.append($0) }
-        sm.handle(.online)        // seed
+        sm.handle(.online)  // seed
         sm.handle(.offline)
         XCTAssertEqual(transitions, [.down])
     }
@@ -27,7 +27,7 @@ final class StateMachineTests: XCTestCase {
     func testTransitionFromOfflineToOnlineFiresUp() {
         var transitions: [Transition] = []
         let sm = StateMachine { transitions.append($0) }
-        sm.handle(.offline)       // seed
+        sm.handle(.offline)  // seed
         sm.handle(.online)
         XCTAssertEqual(transitions, [.up])
     }
@@ -35,7 +35,7 @@ final class StateMachineTests: XCTestCase {
     func testSteadyStateIsSilent() {
         var transitions: [Transition] = []
         let sm = StateMachine { transitions.append($0) }
-        sm.handle(.online)        // seed
+        sm.handle(.online)  // seed
         sm.handle(.online)
         sm.handle(.online)
         XCTAssertTrue(transitions.isEmpty)
@@ -44,7 +44,7 @@ final class StateMachineTests: XCTestCase {
     func testFlipFlopFiresBothDirections() {
         var transitions: [Transition] = []
         let sm = StateMachine { transitions.append($0) }
-        sm.handle(.online)        // seed
+        sm.handle(.online)  // seed
         sm.handle(.offline)
         sm.handle(.online)
         sm.handle(.offline)

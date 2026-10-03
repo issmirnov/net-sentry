@@ -8,8 +8,9 @@ final class AlerterTests: XCTestCase {
         alerter.fire(.down)
         let bins = calls.map(\.executable)
         XCTAssertTrue(bins.contains("/usr/bin/say"))
-        XCTAssertEqual(bins.filter { $0 == "/usr/bin/osascript" }.count, 2,
-                       "modal + banner are both osascript")
+        XCTAssertEqual(
+            bins.filter { $0 == "/usr/bin/osascript" }.count, 2,
+            "modal + banner are both osascript")
     }
 
     func testUpFiresOnlyBannerByDefault() {
@@ -17,10 +18,12 @@ final class AlerterTests: XCTestCase {
         let alerter = Alerter(config: Config.defaults) { calls.append($0) }
         alerter.fire(.up)
         let bins = calls.map(\.executable)
-        XCTAssertEqual(bins.filter { $0 == "/usr/bin/say" }.count, 0,
-                       "speech text_up is empty by default")
-        XCTAssertEqual(bins.filter { $0 == "/usr/bin/osascript" }.count, 1,
-                       "only banner has non-empty text_up by default")
+        XCTAssertEqual(
+            bins.filter { $0 == "/usr/bin/say" }.count, 0,
+            "speech text_up is empty by default")
+        XCTAssertEqual(
+            bins.filter { $0 == "/usr/bin/osascript" }.count, 1,
+            "only banner has non-empty text_up by default")
     }
 
     func testDisabledChannelDoesNotFire() {
@@ -39,8 +42,7 @@ final class AlerterTests: XCTestCase {
         let alerter = Alerter(config: c) { calls.append($0) }
         alerter.fire(.down)
         let modalCalls = calls.filter {
-            $0.executable == "/usr/bin/osascript" &&
-            $0.args.joined(separator: " ").contains("display dialog")
+            $0.executable == "/usr/bin/osascript" && $0.args.joined(separator: " ").contains("display dialog")
         }
         XCTAssertEqual(modalCalls.count, 0)
     }
@@ -59,8 +61,7 @@ final class AlerterTests: XCTestCase {
         let alerter = Alerter(config: Config.defaults) { calls.append($0) }
         alerter.fire(.down)
         let modal = calls.first {
-            $0.executable == "/usr/bin/osascript" &&
-            $0.args.joined(separator: " ").contains("display dialog")
+            $0.executable == "/usr/bin/osascript" && $0.args.joined(separator: " ").contains("display dialog")
         }
         XCTAssertNotNil(modal)
         let script = modal!.args.last!

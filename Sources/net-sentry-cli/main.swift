@@ -31,4 +31,4 @@ monitor.start()
 
 FileHandle.standardError.write(Data("net-sentry: running; debounce=\(config.debounce.seconds)s\n".utf8))
 
-dispatchMain()   // never returns; serviced by libdispatch + run loop
+dispatchMain()  // never returns; serviced by libdispatch + run loop
