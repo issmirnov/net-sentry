@@ -11,8 +11,10 @@ public struct DNSBackend {
     public var currentDNS: (_ service: String) -> [String]
     public var setDNS: (_ service: String, _ servers: [String]) -> Void
 
-    public init(currentDNS: @escaping (_ service: String) -> [String],
-                setDNS: @escaping (_ service: String, _ servers: [String]) -> Void) {
+    public init(
+        currentDNS: @escaping (_ service: String) -> [String],
+        setDNS: @escaping (_ service: String, _ servers: [String]) -> Void
+    ) {
         self.currentDNS = currentDNS
         self.setDNS = setDNS
     }
@@ -42,8 +44,10 @@ public struct DNSBackend {
         },
         setDNS: { service, servers in
             let tail = servers.isEmpty ? ["empty"] : servers
-            Alerter.realSpawn(SpawnCall(executable: "/usr/sbin/networksetup",
-                                        args: ["-setdnsservers", service] + tail))
+            Alerter.realSpawn(
+                SpawnCall(
+                    executable: "/usr/sbin/networksetup",
+                    args: ["-setdnsservers", service] + tail))
         }
     )
 
@@ -75,9 +79,11 @@ public final class DNSGuard {
     private let backend: DNSBackend
     private let notify: SpawnFn
 
-    public init(config: Config.DNSGuard,
-                backend: DNSBackend = .real,
-                notify: @escaping SpawnFn = Alerter.realSpawn) {
+    public init(
+        config: Config.DNSGuard,
+        backend: DNSBackend = .real,
+        notify: @escaping SpawnFn = Alerter.realSpawn
+    ) {
         self.config = config
         self.backend = backend
         self.notify = notify
@@ -104,7 +110,8 @@ public final class DNSGuard {
     }
 
     private func fireBanner(_ r: Reachability) {
-        let text = (r == .unreachable)
+        let text =
+            (r == .unreachable)
             ? "Pi-hole unreachable — DNS cleared"
             : "Pi-hole reachable — DNS restored"
         let script = "display notification \"\(Alerter.escapeForAppleScript(text))\" with title \"Net Sentry\""

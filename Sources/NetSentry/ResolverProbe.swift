@@ -16,8 +16,10 @@ public final class ResolverProbe {
     private let monitor = NWPathMonitor()
     private let internalQueue = DispatchQueue(label: "link.smirnov.net-sentry.resolver-probe")
 
-    public init(host: String, port: UInt16 = 53, timeout: TimeInterval,
-                targetQueue: DispatchQueue, onResult: @escaping (Reachability) -> Void) {
+    public init(
+        host: String, port: UInt16 = 53, timeout: TimeInterval,
+        targetQueue: DispatchQueue, onResult: @escaping (Reachability) -> Void
+    ) {
         self.host = host
         self.port = port
         self.timeout = timeout
@@ -28,7 +30,7 @@ public final class ResolverProbe {
     public func start() {
         monitor.pathUpdateHandler = { [weak self] _ in self?.probe() }
         monitor.start(queue: internalQueue)
-        probe()   // explicit seed; pathUpdateHandler also fires once, but don't depend on that
+        probe()  // explicit seed; pathUpdateHandler also fires once, but don't depend on that
     }
 
     public func cancel() {
@@ -55,9 +57,9 @@ public final class ResolverProbe {
 
         conn.stateUpdateHandler = { state in
             switch state {
-            case .ready:              finish(.reachable)
+            case .ready: finish(.reachable)
             case .failed, .cancelled: finish(.unreachable)
-            default:                  break   // .waiting (no route) rides the timeout
+            default: break  // .waiting (no route) rides the timeout
             }
         }
         conn.start(queue: internalQueue)

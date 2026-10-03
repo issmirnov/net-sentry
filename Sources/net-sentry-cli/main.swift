@@ -52,7 +52,7 @@ if config.dnsGuard.enabled, !config.dnsGuard.knownDNS.isEmpty {
 } else if config.dnsGuard.enabled {
     FileHandle.standardError.write(Data("net-sentry: dns_guard enabled but known_dns is empty; skipping\n".utf8))
 }
-_ = dnsPipeline   // silence "never read" — it exists to retain the chain
+_ = dnsPipeline  // silence "never read" — it exists to retain the chain
 
 FileHandle.standardError.write(Data("net-sentry: running; debounce=\(config.debounce.seconds)s\n".utf8))
 

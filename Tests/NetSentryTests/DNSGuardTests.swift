@@ -29,8 +29,9 @@ final class DNSGuardTests: XCTestCase {
     // MARK: reconcile
 
     private func cfg(services: [String] = ["Wi-Fi"], notify: Bool = true) -> Config.DNSGuard {
-        Config.DNSGuard(enabled: true, knownDNS: "10.3.32.102", services: services,
-                        debounceSeconds: 3.0, probeTimeoutSeconds: 2.0, notify: notify)
+        Config.DNSGuard(
+            enabled: true, knownDNS: "10.3.32.102", services: services,
+            debounceSeconds: 3.0, probeTimeoutSeconds: 2.0, notify: notify)
     }
 
     private func makeGuard(
@@ -40,15 +41,17 @@ final class DNSGuardTests: XCTestCase {
         sets: @escaping (String, [String]) -> Void,
         banners: @escaping (SpawnCall) -> Void
     ) -> DNSGuard {
-        DNSGuard(config: cfg(services: services, notify: notify),
-                 backend: DNSBackend(currentDNS: current, setDNS: sets),
-                 notify: banners)
+        DNSGuard(
+            config: cfg(services: services, notify: notify),
+            backend: DNSBackend(currentDNS: current, setDNS: sets),
+            notify: banners)
     }
 
     func testUnreachableClearsWhenExactlyPinned() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in ["10.3.32.102"] },
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in ["10.3.32.102"] },
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.unreachable)
         XCTAssertEqual(sets.count, 1)
         XCTAssertEqual(sets.first?.0, "Wi-Fi")
@@ -58,8 +61,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testUnreachableLeavesManualOverride() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in ["1.1.1.1"] },
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in ["1.1.1.1"] },
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.unreachable)
         XCTAssertTrue(sets.isEmpty)
         XCTAssertTrue(banners.isEmpty)
@@ -67,8 +71,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testUnreachableNoopWhenAlreadyEmpty() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in [] },
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in [] },
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.unreachable)
         XCTAssertTrue(sets.isEmpty)
         XCTAssertTrue(banners.isEmpty)
@@ -76,8 +81,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testReachableRestoresWhenEmpty() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in [] },
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in [] },
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.reachable)
         XCTAssertEqual(sets.count, 1)
         XCTAssertEqual(sets.first?.0, "Wi-Fi")
@@ -87,8 +93,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testReachableLeavesManualOverride() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in ["1.1.1.1"] },
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in ["1.1.1.1"] },
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.reachable)
         XCTAssertTrue(sets.isEmpty)
         XCTAssertTrue(banners.isEmpty)
@@ -96,8 +103,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testReachableNoopWhenAlreadyPinned() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in ["10.3.32.102"] },
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in ["10.3.32.102"] },
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.reachable)
         XCTAssertTrue(sets.isEmpty)
         XCTAssertTrue(banners.isEmpty)
@@ -105,9 +113,10 @@ final class DNSGuardTests: XCTestCase {
 
     func testMultipleServicesEvaluatedIndependently() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { svc in svc == "Wi-Fi" ? ["10.3.32.102"] : ["1.1.1.1"] },
-                          services: ["Wi-Fi", "Ethernet"],
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { svc in svc == "Wi-Fi" ? ["10.3.32.102"] : ["1.1.1.1"] },
+            services: ["Wi-Fi", "Ethernet"],
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.unreachable)
         XCTAssertEqual(sets.count, 1)
         XCTAssertEqual(sets.first?.0, "Wi-Fi")
@@ -116,8 +125,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testNotifyFalseSuppressesBanner() {
         var sets: [(String, [String])] = []; var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in ["10.3.32.102"] }, notify: false,
-                          sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in ["10.3.32.102"] }, notify: false,
+            sets: { sets.append(($0, $1)) }, banners: { banners.append($0) })
         g.reconcile(.unreachable)
         XCTAssertEqual(sets.count, 1, "still mutates")
         XCTAssertTrue(banners.isEmpty, "but no banner when notify=false")
@@ -125,8 +135,9 @@ final class DNSGuardTests: XCTestCase {
 
     func testBannerIsAnOsascriptNotification() {
         var banners: [SpawnCall] = []
-        let g = makeGuard(current: { _ in ["10.3.32.102"] },
-                          sets: { _, _ in }, banners: { banners.append($0) })
+        let g = makeGuard(
+            current: { _ in ["10.3.32.102"] },
+            sets: { _, _ in }, banners: { banners.append($0) })
         g.reconcile(.unreachable)
         XCTAssertEqual(banners.first?.executable, "/usr/bin/osascript")
         XCTAssertTrue(banners.first?.args.last?.contains("display notification") ?? false)
